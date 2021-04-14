@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+    pugbot:
+        build:
+            context: .
+        volumes:
+            - .:/opt/pugbot/
+        restart: on-failure
+
+    db:
+        image: postgres:12-alpine
+        environment:
+            - POSTGRES_DB=pugbot
+            - POSTGRES_PORT=5432
+            - POSTGRES_USER=postgres
+            - POSTGRES_PASSWORD=ouchfree
+        restart: on-failure
+        volumes:
+            - ./.volumes/database/ouch_core/:/var/lib/postgresql/data/
+        ports:
+            - 5432
+        depends_on:
+            - pugbot
