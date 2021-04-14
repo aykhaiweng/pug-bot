@@ -4,6 +4,8 @@ services:
     pugbot:
         build:
             context: .
+        env_file:
+            - .env
         volumes:
             - .:/opt/pugbot/
         restart: on-failure
