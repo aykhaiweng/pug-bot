@@ -4,8 +4,6 @@ from .consts import PugStatus, PREFIX
 async def create_embed(pug, title=None, description=None, status=None):
     """
     Creates that neat Discord embed
-
-    status: PugStatus.enum
     """
     if not status:
         status = pug.status
