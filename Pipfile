@@ -5,10 +5,14 @@ name = "pypi"
 
 [packages]
 discord = "*"
-sqlalchemy = "*"
+pymongo = "*"
 
 [dev-packages]
 ipython = "*"
+flake8 = "*"
+nose = "*"
+nest-asyncio = "*"
+debugpy = "*"
 
 [requires]
 python_version = "3.9"

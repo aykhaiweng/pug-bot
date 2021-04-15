@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+    pugbot-test:
+        extends:
+            file: docker-compose/common-services.yml
+            service: pugbot
+        env_file:
+            - .env
+        environment:
+            TEST_MODE: "true"
+        volumes:
+            - .:/opt/pugbot
+        entrypoint: ["python3", "main.py"]
+        restart: "no"
+
+    db-test:
+        extends:
+            file: docker-compose/common-services.yml
+            service: db
+        env_file:
+            - .env
