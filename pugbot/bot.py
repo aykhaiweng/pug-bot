@@ -1,20 +1,25 @@
+"""
+This bot requires:
+    read message permission
+    write message permission
+    move members permission
+    view channel permission
+    create channel permission
+    delete channel permission
+"""
 import logging
 import sys
-import asyncio
+import json
 
+import discord
 from discord.ext import commands
 
-from . import conf
-from .loggers import log
-from .commands import (
-    hello,
-    create,
-    join,
-    leave,
-    disband,
-    status,
-    createteam
-)
+from pugbot.loggers import ch
+from pugbot import conf
+
+
+# logger
+logger = logging.getLogger('pugbot.bot')
 
 
 class PugBot(commands.Bot):
@@ -26,10 +31,14 @@ class PugBot(commands.Bot):
         """
         When the bot is ready, this function is called.
         """
-        log("Bot is ready!")
+        logger.info("Bot is ready!")
+        logger.info(
+            f"These commands were loaded: "
+            f"{json.dumps(self.all_commands, indent=4, default=str)}",
+        )
 
         if conf.TEST_MODE:
-            log("Bot is running tests now!")
+            logger.info("Bot is running tests now!")
             # If TEST_MODE is enabled, run all the tests
             import nose
             import nest_asyncio
@@ -37,7 +46,7 @@ class PugBot(commands.Bot):
             nose.main()
             sys.exit()
 
-    async def on_message(self, message):
+    async def on_message(self, message: discord.Message):
         """
         Adding an override to skip this function of the bot
         receives a message that is not part of the prefix command
@@ -50,10 +59,16 @@ class PugBot(commands.Bot):
                 return
 
         if conf.DEBUG:
-            log(
-                f"{message.guild}({message.guild.id}) #{message.channel}({message.channel.id}) @{message.author}({message.author.id}): "
-                f"{message.content} [{message.jump_url}]"
-            )
+            debug_string = "Message received!\n"
+            if message.guild:
+                debug_string += f"--> Guild: {message.guild}({message.guild.id})\n"
+                debug_string += f"--> Channel: #{message.channel}({message.channel.id})\n"
+                debug_string += f"--> Author: @{message.author}({message.author.id}): "
+            else:
+                debug_string += f"--> Channel: #{message.channel}({message.channel.id}): "
+            debug_string += f"{message.content}\n"
+            debug_string += f"--> Jump URL: [{message.jump_url}]\n"
+            logger.info(debug_string)
 
         await super().on_message(message)
     
@@ -63,24 +78,6 @@ class PugBot(commands.Bot):
         """
         await super().invoke(ctx)
 
-    async def send_message(self, message_content, channel_id):
-        """
-        Send a message to a channel
-        """
-        channel = self.get_channel(int(channel_id))
-        log(f"Bot is sending message `{message_content}` to channel `{channel}({channel_id})`")
-        await channel.send(message_content)
-
 
 # Initialize the bot
 bot = PugBot(command_prefix=conf.PREFIX)
-
-
-# Commands
-bot.add_command(hello.hello)
-bot.add_command(create.create)
-bot.add_command(join.join)
-bot.add_command(leave.leave)
-bot.add_command(disband.disband)
-bot.add_command(status.status)
-bot.add_command(createteam.createteam)

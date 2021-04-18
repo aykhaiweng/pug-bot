@@ -1,21 +1,13 @@
-"""
-Create a Pug
-"""
-from discord.ext.commands import command
-
-from .. import conf
-from ..exceptions import PugNotFound
-from ..pugs import PugListHandler
+from pugbot import conf
+from pugbot.bot import bot
+from pugbot.exceptions import PugNotFound
+from pugbot.pugs import PugListHandler
 
 
-@command()
+@bot.command()
 async def disband(ctx, *args):
-    f"""
-    If you are the lobby owner, this disbands the pug
-
-    Checks: 
-
-    Syntax: {conf.PREFIX}
+    """
+    Disbands the Pug in the current text-channel.
     """
 
     # Get the pug by the lobby
@@ -26,8 +18,9 @@ async def disband(ctx, *args):
         await ctx.send(f"There are no on-going pugs in {ctx.channel}. Use `{conf.PREFIX}create` to create one.")
         return
 
-    # if pug.owner == ctx.author:
-    PugListHandler.remove_pug(pug)  # We'll just let anyone do it now
+    if ctx.author in pug.players:
+        # Only players can close a pug
+        PugListHandler.remove_pug(pug)  # We'll just let anyone do it now
 
     # Send an embed for the new pug
     await ctx.send("The pug has been disbanded.")

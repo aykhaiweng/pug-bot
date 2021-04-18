@@ -1,25 +1,31 @@
-"""
-Here's a default error list
-"""
-
-errors = {
-    'BAD_INPUT': ""
-}
+from discord.ext.commands import CheckFailure
 
 
-class BadInput(Exception):
+class NoPrivateMessages(CheckFailure):
     """
-    Used for bad input
+    No Private Messages!
     """
 
 
-class PugNotFound(Exception):
+class OnePugPerTextChannel(CheckFailure):
     """
-    Pug not found
+    Only one Pug per text-channel
     """
 
 
-class PugNameAlreadyExists(Exception):
+class PugNameAlreadyExists(CheckFailure):
     """
-    Pug Name already Exists
+    Pug names need to be unique per Guild
+    """
+
+
+class RequiresPug(CheckFailure):
+    """
+    Could not find Pug in the current text-channel
+    """
+
+
+class PugNotFound(CheckFailure):
+    """
+    Could not find Pug in the current text-channel
     """

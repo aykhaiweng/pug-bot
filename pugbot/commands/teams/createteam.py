@@ -1,21 +1,13 @@
-"""
-Create a Pug
-"""
-from discord.ext.commands import command
-
-from .. import conf
-from ..exceptions import PugNotFound
-from ..pugs import Team, PugListHandler, create_pug_embed
+from pugbot import conf
+from pugbot.bot import bot
+from pugbot.exceptions import PugNotFound
+from pugbot.pugs import Team, PugListHandler, create_pug_embed
 
 
-@command()
+@bot.command()
 async def createteam(ctx, *args):
-    f"""
-    If you are the lobby owner, this disbands the pug
-
-    Checks: 
-
-    Syntax: {conf.PREFIX}
+    """
+    Creates a team in the Pug you're joined to.
     """
     # Check if any args were given
     if not args:
@@ -34,6 +26,11 @@ async def createteam(ctx, *args):
     except PugNotFound:
         # If no pugs could be found, send an error message and exit the function
         await ctx.send(f"There are no on-going pugs in {ctx.channel}. Use `{conf.PREFIX}create` to create one.")
+        return
+
+    # Check that the ctx.author is not part of any team
+    if ctx.author in pug.get_players_in_teams():
+        await ctx.send(f"You are already in a team, {ctx.author}")
         return
 
     # Check existing teams

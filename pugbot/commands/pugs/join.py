@@ -1,26 +1,18 @@
-"""
-Create a Pug
-"""
-from discord.ext.commands import command
-
-from .. import conf
-from ..exceptions import PugNotFound
-from ..pugs import PugListHandler, create_pug_embed
+from pugbot import conf
+from pugbot.bot import bot
+from pugbot.exceptions import PugNotFound
+from pugbot.pugs import PugListHandler, create_pug_embed
 
 
-@command()
+@bot.command()
 async def join(ctx, *args):
-    f"""
-    Assigns the user to the pug that is assigned to this lobby
-
-    Checks: 
-
-    Syntax: {conf.PREFIX}
+    """
+    Adds a you to the Pug in this text-channel.
     """
 
     # Get the pug by the lobby
     try:
-        pug = PugListHandler.get_pug_by_channel(ctx.guild.id, ctx.channel)
+        pug = PugListHandler.get_pug_by_channel(ctx.guild, ctx.channel)
     except PugNotFound:
         await ctx.send(f"There are no on-going pugs in {ctx.channel}. Use `{conf.PREFIX}create` to create one.")
         return

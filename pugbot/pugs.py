@@ -3,9 +3,9 @@ from collections import OrderedDict
 
 import discord
 
-from . import conf
-from .consts import PugStatus
-from .exceptions import (
+from pugbot import conf
+from pugbot.consts import PugStatus
+from pugbot.exceptions import (
     PugNameAlreadyExists,
     PugNotFound
 )
@@ -30,21 +30,20 @@ class PugListHandler(object):
     """
 
     @classmethod
-    def get_or_create_guild(cls, guild_id):
+    def get_or_create_guild(cls, guild: discord.Guild):
         """
         GET or CREATE the guild key, this can double up as a guildlist
         """
-        if guild_id not in PUG_LIST.keys():
-            PUG_LIST[guild_id] = {}
-        return PUG_LIST[guild_id]
+        if guild.id not in PUG_LIST.keys():
+            PUG_LIST[guild.id] = {}
+        return PUG_LIST[guild.id]
 
     @classmethod
     def add_pug(cls,  pug):
         """
         ADD a pug to the pug list for the guild
         """
-        guild_id = pug.guild.id
-        pugs = cls.get_or_create_guild(guild_id)
+        pugs = cls.get_or_create_guild(pug.guild)
         if pug.name in pugs.keys():
             raise PugNameAlreadyExists(f'Pug {pug.name} already exists')
         pugs[pug.name] = pug
@@ -54,28 +53,28 @@ class PugListHandler(object):
         """
         REMOVES a pug to the pug list for the guild
         """
-        guild_id = pug.guild.id
-        pugs = cls.get_or_create_guild(guild_id)
+        pugs = cls.get_or_create_guild(pug.guild)
         del pugs[pug.name]
 
     @classmethod
-    def get_pug_by_name(cls, guild_id, pug_name):
+    def get_pug_by_name(cls, guild: discord.Guild, pug_name):
         """
         GET a pug using the pug's ID
         """
-        pugs = cls.get_or_create_guild(guild_id)
+        pugs = cls.get_or_create_guild(guild.id)
         return pugs.get(pug_name)
 
     @classmethod
-    def get_pug_by_channel(cls, guild_id, channel):
+    def get_pug_by_channel(
+        cls, guild: discord.Guild, channel: discord.TextChannel
+    ):
         """
         GET a pug using the pug's ID
         """
-        pugs = cls.get_or_create_guild(guild_id)
+        pugs = cls.get_or_create_guild(guild)
         for pug_name, pug in reversed(pugs.items()):
             if pug.lobby_channel == channel:
                 return pug
-        raise PugNotFound(f"No on-going Pug in {channel}")
 
 
 class Pug(object):
@@ -99,8 +98,8 @@ class Pug(object):
         lobby_channel,
         guild,
         max_size,
-        teams=[],
-        players=[],
+        teams=None,
+        players=None,
         status=PugStatus.OPEN.value,
     ):
         self.uuid = str(uuid.uuid4())
@@ -109,8 +108,8 @@ class Pug(object):
         self.lobby_channel = lobby_channel
         self.guild = guild
         self.max_size = max_size
-        self.teams = teams
-        self.players = players
+        self.teams = teams or list()
+        self.players = players or list()
         self.status = status
         super().__init__()
 
@@ -118,7 +117,7 @@ class Pug(object):
         return self.name
 
     # Management methods -----
-    def add_player(self, user):
+    def add_player(self, user: discord.Member):
         """
         Adds a User to the list of players
         """
@@ -128,7 +127,7 @@ class Pug(object):
         else:
             return False
     
-    def remove_player(self, user):
+    def remove_player(self, user: discord.Member):
         """
         Removes a User from the list of players
         """
@@ -148,28 +147,30 @@ class Pug(object):
             self.teams.remove(team)
 
     # Status methods -----
-    def remaining_players(self):
+    def get_remaining_players(self):
         """
         Checks for players that do not have a team yet.
         """
-        return self.players
+        players_in_teams = self.get_players_in_teams()
+        remaining_players = list(filter(lambda x: x not in players_in_teams, self.players))
+        return remaining_players
 
     def get_players_in_teams(self):
         """
         Get the players who are in teams.
         """
-        players_in_teams = []
+        players_in_teams = list()
         for team in self.teams:
-            team
+            players_in_teams.extend(team.players)
         return players_in_teams
 
     @classmethod
-    def get_category_channels(cls, channel=None):
+    def get_category_channels(cls, text_channel: discord.TextChannel):
         """
-        Retrieves the category channels based on the lobby that it's being typed in
+        Retrieves the voice channels based on the lobby_channel
         """
-        channel = channel or cls.lobby_channel
-        return channel.category.voice_channels
+        text_channel = text_channel or cls.lobby_channel
+        return text_channel.category.voice_channels
 
 
 class Team(object):
@@ -179,13 +180,14 @@ class Team(object):
     Store in pug.teams = {'<team_name>': <Team Object>}
     """
 
-    def __init__(self, name, captain=None, players=[]):
+    def __init__(self, name, captain=None, players=None, voice_channel=None):
         self.name = name
         self.captain = captain
-        self.players = players
+        self.players = players or list()
+        self.voice_channel = voice_channel
 
     # Management methods -----
-    def add_player(self, user):
+    def add_player(self, user: discord.Member):
         """
         Adds a User to the list of players
         """
@@ -193,22 +195,31 @@ class Team(object):
         if len(self.players) >= 1 and self.captain is None:
             self.set_captain(user)
     
-    def remove_player(self, user):
+    def remove_player(self, user: discord.Member):
         """
         Removes a User from the list of players
         """
         self.players.remove(user)
-        if user == self.captain and len(self.players) > 1:
+        if user == self.captain and len(self.players) >= 1:
+            # If the user leaving is the captain and there are still players in the team
             self.captain(self.players[0])
 
-    def set_captain(self, user):
+    def set_captain(self, user: discord.Member):
         """
         Set a player as the captain
         """
         self.captain = user
 
+    def set_channel(self, voice_channel: discord.VoiceChannel):
+        """
+        Set the voice_channel for this team
+        """
+        self.voice_channel = voice_channel
 
-async def create_pug_embed(pug, title=None, description=None, status=None, footer=None, color=None):
+
+async def create_pug_embed(
+    pug, title=None, description=None, status=None, footer=None, color=None
+):
     """
     Creates an embed for the pug
     """
@@ -232,11 +243,14 @@ async def create_pug_embed(pug, title=None, description=None, status=None, foote
                 color = 'red'
     color = getattr(discord.Color, color)()
     footer_text = footer or status_mapping[status][1]
+    description = description or (
+        f"Type `{conf.PREFIX}join` in this channel to join this lobby"
+    )
 
     # Create the initial embed
     embed = discord.Embed(
-        title=title or f"{pug.name}",  # ({len(pug.players)}/{pug.max_size})",
-        description=description or f"Type `{conf.PREFIX}join` in this channel to join this lobby",
+        title=title or f"{pug.name}",
+        description=description,
         type="rich",
         color=color,
     )
@@ -274,10 +288,16 @@ async def create_pug_embed(pug, title=None, description=None, status=None, foote
         )
 
     # Player list
-    player_list = pug.players
-    if player_list:
-        player_list_string = [f"`[{i+1}]` {x.name}" for i, x in enumerate(pug.players)]
-        player_list_string = "\n".join(player_list_string)
+    players = pug.players
+    players_in_teams = pug.get_players_in_teams()
+    if players:
+        player_list_string = str()
+        for i, p in enumerate(players):
+            if p in players_in_teams:
+                # If the player is already in a team, cross them out
+                player_list_string += f"~~`[{i+1}]` {p.name}~~\n"
+            else:
+                player_list_string += f"`[{i+1}]` {p.name}\n"
     else:
         player_list_string = "-"
     embed.add_field(

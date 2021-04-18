@@ -1,20 +1,12 @@
-"""
-Create a Pug
-"""
-from discord.ext.commands import command
-
-from .. import conf
-from ..pugs import PugListHandler, create_pug_embed
+from pugbot import conf
+from pugbot.bot import bot
+from pugbot.pugs import PugListHandler, create_pug_embed
 
 
-@command()
+@bot.command()
 async def leave(ctx, *args):
-    f"""
-    Removes a User from the pug assigned to this lobby
-
-    Checks: 
-
-    Syntax: {conf.PREFIX}
+    """
+    Leave the Pug in the current text-channel if you've joined it
     """
 
     # Get the pug by the lobby
