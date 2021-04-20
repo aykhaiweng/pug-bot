@@ -9,10 +9,14 @@ ENV PYTHONBUFFERED 1
 
 WORKDIR /opt/pugbot/
 COPY . /opt/pugbot/
+
+# System depedencies for Python
 RUN apk add --update --virtual \
-    python3-dev \
-    gcc \
-    libc-dev
+    build-essential \
+    libc-dev python3-dev gcc \
+    g++ \
+    postgresql-dev
+
 
 RUN pip install -U pip
 RUN pip install pipenv

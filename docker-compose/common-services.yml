@@ -8,16 +8,19 @@ services:
             context: ..
             target: dev
         environment:
-            MONGO_HOST: db
-            MONGO_PORT: 8081
-            MONGO_USERNAME: pugbot
-            MONGO_PASSWORD: pugbotspasswor
+            POSTGRES_HOST: db
+            POSTGRES_DB: pugbot
+            POSTGRES_PORT: 5432
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: pugbot
 
     db:
-        image: mongo:4.4-bionic
+        image: postgres:12
         restart: on-failure
         environment:
-            MONGO_INITDB_ROOT_USERNAME: pugbot
-            MONGO_INITDB_ROOT_PASSWORD: pugbotspassword
+            POSTGRES_DB: pugbot
+            POSTGRES_PORT: 5432
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: pugbot
         ports:
-            - 8081
+            - 5432

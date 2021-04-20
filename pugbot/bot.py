@@ -14,8 +14,7 @@ import json
 import discord
 from discord.ext import commands
 
-from pugbot.loggers import ch
-from pugbot import conf
+from pugbot import conf, loggers
 
 
 # logger
@@ -36,15 +35,16 @@ class PugBot(commands.Bot):
             f"These commands were loaded: "
             f"{json.dumps(self.all_commands, indent=4, default=str)}",
         )
+        loggers  # VOID call to initialize the loggers
 
-        if conf.TEST_MODE:
-            logger.info("Bot is running tests now!")
-            # If TEST_MODE is enabled, run all the tests
-            import nose
-            import nest_asyncio
-            nest_asyncio.apply()
-            nose.main()
-            sys.exit()
+        # if conf.TEST_MODE:
+        #     logger.info("Bot is running tests now!")
+        #     # If TEST_MODE is enabled, run all the tests
+        #     import nose
+        #     import nest_asyncio
+        #     nest_asyncio.apply()
+        #     nose.main()
+        #     sys.exit()
 
     async def on_message(self, message: discord.Message):
         """
@@ -77,6 +77,12 @@ class PugBot(commands.Bot):
         When the bot is attempting to invoke a command
         """
         await super().invoke(ctx)
+
+    async def send_message(self, message, channel: discord.TextChannel):
+        """
+        Sends a message to a channel when the bot is initialized
+        """
+        return channel.send(message)
 
 
 # Initialize the bot

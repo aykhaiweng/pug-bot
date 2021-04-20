@@ -9,4 +9,5 @@ async def hello(ctx):
     """
     Say hello to the bot! He might give you some interesting insights!
     """
+    breakpoint()
     await ctx.send("Hi!")

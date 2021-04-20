@@ -1,80 +1,9 @@
 import uuid
-from collections import OrderedDict
 
 import discord
 
 from pugbot import conf
 from pugbot.consts import PugStatus
-from pugbot.exceptions import (
-    PugNameAlreadyExists,
-    PugNotFound
-)
-
-
-"""
-An example of how the PUG_LIST is supposed to look like:
-
-PUG_LIST = {
-    "<guild_id>" : {
-        "<pug_name>": PugObject
-    }
-}
-"""
-
-PUG_LIST=OrderedDict()
-class PugListHandler(object):
-    """
-    A handler used for the PUG_LIST
-
-    The PUG_LIST acts as a temporary store for the pugs.
-    """
-
-    @classmethod
-    def get_or_create_guild(cls, guild: discord.Guild):
-        """
-        GET or CREATE the guild key, this can double up as a guildlist
-        """
-        if guild.id not in PUG_LIST.keys():
-            PUG_LIST[guild.id] = {}
-        return PUG_LIST[guild.id]
-
-    @classmethod
-    def add_pug(cls,  pug):
-        """
-        ADD a pug to the pug list for the guild
-        """
-        pugs = cls.get_or_create_guild(pug.guild)
-        if pug.name in pugs.keys():
-            raise PugNameAlreadyExists(f'Pug {pug.name} already exists')
-        pugs[pug.name] = pug
-
-    @classmethod
-    def remove_pug(cls, pug):
-        """
-        REMOVES a pug to the pug list for the guild
-        """
-        pugs = cls.get_or_create_guild(pug.guild)
-        del pugs[pug.name]
-
-    @classmethod
-    def get_pug_by_name(cls, guild: discord.Guild, pug_name):
-        """
-        GET a pug using the pug's ID
-        """
-        pugs = cls.get_or_create_guild(guild.id)
-        return pugs.get(pug_name)
-
-    @classmethod
-    def get_pug_by_channel(
-        cls, guild: discord.Guild, channel: discord.TextChannel
-    ):
-        """
-        GET a pug using the pug's ID
-        """
-        pugs = cls.get_or_create_guild(guild)
-        for pug_name, pug in reversed(pugs.items()):
-            if pug.lobby_channel == channel:
-                return pug
 
 
 class Pug(object):
@@ -86,7 +15,7 @@ class Pug(object):
             lobby_channel: which channel serves as the lobby
             guild: Which guild this pug resides in
             max_size: Max size of the pug
-            teams: dictionary of teamnames and the players in them {'team 1': [('member 1', 'meta': {'is_captain': True})]}
+            teams: list of teams
             players: list of active players
             status: what status the pug is currently in
     """

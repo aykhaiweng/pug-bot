@@ -2,8 +2,9 @@ import os
 import logging
 
 
-# Set debug mode on or off
+# Main Python settings
 DEBUG = os.getenv("DEBUG", "False").lower() == "true"
+TEST_MODE = os.getenv("TEST_MODE", "False").lower() == "true"
 DEFAULT_LOG_LEVEL = getattr(
     logging, os.getenv("DEFAULT_LOG_LEVEL", "INFO").upper()
 )
@@ -11,14 +12,14 @@ DEFAULT_LOG_FORMATTER = os.getenv(
     "DEFAULT_LOG_FORMATTER",
     "[%(name)s] [%(asctime)s] [%(levelname)s] %(message)s"
 )
-TEST_MODE = os.getenv("TEST_MODE", "False").lower() == "true"
 
 
-# Mongo connection
-MONGO_HOST = os.getenv("MONGO_HOST")
-MONGO_PORT = os.getenv("MONGO_PORT")
-MONGO_USERNAME = os.getenv("MONGO_USERNAME")
-MONGO_PASSWORD = os.getenv("MONGO_PASSWORD")
+# PostgreSQL connection
+POSTGRES_HOST = os.getenv("POSTGRES_HOST")
+POSTGRES_DB = os.getenv("POSTGRES_DB")
+POSTGRES_PORT = os.getenv("POSTGRES_PORT")
+POSTGRES_USER = os.getenv("POSTGRES_USER")
+POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
 
 
 # Discord Bot
