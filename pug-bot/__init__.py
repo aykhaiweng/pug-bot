@@ -39,7 +39,7 @@ async def check_age():
         for pugs in guild_list.copy().values():
             for pug in pugs.copy():
                 # If a pug has been inactive for more than 30 minutes
-                if time.time() - pug.last_action > 1800 and pug.active == PUG_STOPPED:
+                if time.time() - pug.last_action > 3600 and pug.active == PUG_STOPPED:
                     await pug.channel.send(f"`{pug.name}` was deleted for inactivity.")
                     if pug.status:
                         await pug.status.delete()
@@ -53,7 +53,7 @@ async def on_ready():
     print(f"Username: {client.user.name}")
     print(f"ID: {client.user.id}")
     print()
-    client.loop.create_task(check_age())
+    # client.loop.create_task(check_age())
 
 
 @client.event
@@ -71,7 +71,7 @@ async def on_message(message):
         print(f"Guild: {message.guild}")
         print(f"Command: {message.content}")
         print(f"Jump to message: {message.jump_url}")
-        
+
         user_input = parse_command(message.content)
 
         # Add the guild to the guilds list if it's not in it already
@@ -88,7 +88,7 @@ async def on_message(message):
             error_message = await commands[user_input["command"]](message, pugs, user_input, client)
         else:
             error_message = await message.channel.send(NOT_A_COMMAND)
-        
+
         if error_message is not None:
             print(f"Error: {error_message.content}")
         print()
